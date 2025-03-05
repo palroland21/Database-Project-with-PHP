@@ -1,0 +1,139 @@
+3.a)
+
+DELIMITER //
+
+CREATE PROCEDURE GetRaspunsuri(IN test_id INT)
+BEGIN
+    SELECT rasp.id_i AS `ID intrebare`, rasp.raspuns AS `Raspunsul`
+    FROM Raspuns rasp
+    JOIN Test test ON rasp.id_i = test.id_i
+    WHERE test.id_t = test_id AND rasp.id_i BETWEEN 1 AND 3 AND rasp.corect = 'D'
+    ORDER BY rasp.id_i, rasp.id_r;
+END //
+
+DELIMITER ;
+
+
+
+
+3.b)
+
+DELIMITER //
+CREATE PROCEDURE GetTesteSemestru(IN start_date DATE, IN end_date DATE)
+BEGIN
+    SELECT DISTINCT id_t, data
+    FROM Test
+    WHERE data BETWEEN start_date AND end_date
+    ORDER BY data ASC;
+END //
+DELIMITER ;
+
+
+
+4.a)
+
+DELIMITER //
+CREATE PROCEDURE GetRaspunsuriModel(IN punctaj INT, IN corect_value CHAR(1))
+BEGIN
+    SELECT DISTINCT rsTest.id_t, rasp.id_i, 
+           CONCAT(rasp.id_r, '--> ', rasp.raspuns) AS 'Raspunsul Model', 
+           COALESCE(rsTest.id_r, 'Nu s-a dat raspuns') AS 'Raspuns dat'
+    FROM Raspuns rasp
+    JOIN Raspuns_test rsTest ON rasp.id_i = rsTest.id_i
+    JOIN Test test ON test.id_i = rasp.id_i AND test.id_t = rsTest.id_t
+    WHERE test.punctaj_obtinut = punctaj AND rsTest.corect = corect_value AND rasp.corect = 'D';
+END //
+DELIMITER ;
+
+
+
+
+
+4.b)
+
+DELIMITER //
+
+CREATE PROCEDURE GetPerechiTeste()
+BEGIN
+    SELECT DISTINCT test1.id_t AS Test1, test2.id_t AS Test2
+    FROM TEST test1 
+    JOIN TEST test2 ON (test1.id_i = test2.id_i)
+    WHERE test1.id_t <> test2.id_t 
+    AND test1.punctaj_obtinut = test2.punctaj_obtinut
+    ORDER BY test1.id_t, test2.id_t ASC;
+END //
+
+DELIMITER ;
+
+
+
+
+5.a)
+
+DELIMITER //
+
+CREATE PROCEDURE GetRaspunsuriCorecte(IN test_id INT)
+BEGIN
+    SELECT test.id_t AS "Testul", test.id_i AS "Intrebarea", rasp.raspuns AS "Raspunsul"
+    FROM TEST test 
+    JOIN Raspuns rasp ON (test.id_i = rasp.id_i)
+    WHERE test.id_t = test_id 
+    AND rasp.corect = 'D';
+END //
+
+DELIMITER ;
+
+
+
+
+5.b)
+DELIMITER //
+
+CREATE PROCEDURE GetTesteCompletRaspunse()
+BEGIN
+    SELECT DISTINCT t.id_t
+    FROM Test t
+    JOIN Intrebare i ON t.id_i = i.id_i
+    LEFT JOIN Raspuns_test rt ON t.id_t = rt.id_t AND t.id_i = rt.id_i
+    WHERE rt.id_t IS NOT NULL
+    GROUP BY t.id_t
+    HAVING COUNT(i.id_i) = COUNT(rt.id_i)
+    ORDER BY t.id_t ASC;
+END //
+
+DELIMITER ;
+
+
+
+
+6.a)
+
+DELIMITER //
+
+CREATE PROCEDURE GetNrIntrebariSiPunctajTotal()
+BEGIN
+    SELECT id_t AS "ID Test", COUNT(id_i) AS "Nr Intrebari", SUM(punctaj_obtinut) AS "Total puncte"
+    FROM TEST 
+    GROUP BY id_t;
+END //
+
+DELIMITER ;
+
+
+
+
+6.b)
+
+DELIMITER //
+
+CREATE PROCEDURE GetIntrebariCuRaportMaxim()
+BEGIN
+    SELECT id_i, ROUND(SUM(punctaj_obtinut) / COUNT(DISTINCT id_t), 2) AS raport_maxim
+    FROM TEST
+    GROUP BY id_i
+    ORDER BY raport_maxim DESC;
+END //
+
+DELIMITER ;
+
+
